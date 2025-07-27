@@ -4,7 +4,7 @@ const body = document.body;
 body.style.margin = "0";
 body.style.padding = "0";
 body.style.fontFamily = "Segoe UI, sans-serif";
-body.style.background = "#e6f4ec";
+body.style.background = "#eafcf3"; // lighter green
 body.style.color = "#1b4332";
 body.style.overflowX = "hidden";
 
@@ -39,10 +39,52 @@ style.innerHTML = `
   .fade-in.visible {
     opacity: 1;
   }
+  /* Floating carts animation */
+  .floating-cart {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.85;
+    animation: floatCart 8s linear infinite;
+  }
+  .floating-cart .trail {
+    position: absolute;
+    left: 50%;
+    top: 60%;
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(to bottom, #b7f7d8 60%, transparent 100%);
+    border-radius: 2px;
+    transform: translateX(-50%);
+    opacity: 0.5;
+    filter: blur(1px);
+  }
+  @keyframes floatCart {
+    0% {
+      transform: translateY(0) scale(1) rotate(-8deg);
+      opacity: 0.7;
+    }
+    10% {
+      opacity: 1;
+    }
+    50% {
+      transform: translateY(-60vh) scale(1.08) rotate(8deg);
+      opacity: 1;
+    }
+    90% {
+      opacity: 0.7;
+    }
+    100% {
+      transform: translateY(-100vh) scale(1.1) rotate(-8deg);
+      opacity: 0;
+    }
+  }
 `;
 document.head.appendChild(style);
 
-// Logo Container
+// Logo Container (no image, just brand text)
 const logoContainer = document.createElement("div");
 logoContainer.style.display = "flex";
 logoContainer.style.alignItems = "center";
@@ -50,23 +92,96 @@ logoContainer.style.justifyContent = "center";
 logoContainer.style.margin = "2rem auto";
 logoContainer.style.gap = "1rem";
 
-// Logo Image
-const logoImg = document.createElement("img");
-logoImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/QR_code_icon.svg/1024px-QR_code_icon.svg.png";
-logoImg.style.width = "80px";
-logoImg.style.height = "80px";
-logoImg.style.borderRadius = "12px";
-logoImg.alt = "QuikKart Logo";
-
-// Brand Text (QuiK green, Cart blue)
 const brandText = document.createElement("h1");
-brandText.innerHTML = `<span style="color:#38a169;font-weight:700">QuiK</span><span style="color:#3182ce;font-weight:700">Cart</span>`;
+brandText.innerHTML = `<span style="color:#38e18c;font-weight:700">QuiK</span><span style="color:#3182ce;font-weight:700">Cart</span>`;
+brandText.style.margin = "0";
 
-logoContainer.appendChild(logoImg);
 logoContainer.appendChild(brandText);
-
-// Prepend to body (or you can use a ref to a div if you want it inside your React root)
 document.body.prepend(logoContainer);
+
+// --- Animated Floating Carts (scattered all over the screen, green & blue) ---
+const floatingCartStyle = document.createElement("style");
+floatingCartStyle.innerHTML = `
+  .floating-cart {
+    position: fixed;
+    left: -60px;
+    width: 48px;
+    height: 48px;
+    z-index: 1001; /* IN FRONT of content */
+    pointer-events: none;
+    opacity: 0.45; /* More transparent */
+    animation: floatCartLR 12s linear infinite;
+  }
+  .floating-cart .trail {
+    position: absolute;
+    left: -32px; /* Move trail behind the cart horizontally */
+    top: 18px;   /* Vertically center the trail with the cart */
+    width: 36px;
+    height: 10px;
+    background: linear-gradient(90deg, var(--trail-color, #38e18c) 60%, transparent 100%);
+    border-radius: 4px;
+    opacity: 0.5;
+    filter: blur(2px);
+    z-index: -1; /* Behind the cart */
+  }
+  @keyframes floatCartLR {
+    0% {
+      left: -60px;
+      opacity: 0.3;
+    }
+    10% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 0.45;
+    }
+    90% {
+      opacity: 0.3;
+    }
+    100% {
+      left: 100vw;
+      opacity: 0;
+    }
+  }
+`;
+document.head.appendChild(floatingCartStyle);
+
+function createFloatingCartLR(top, delay, color = "green", opacity = 0.45) {
+  // Set cart and trail color based on type
+  let cartFill, cartStroke, trailColor;
+  if (color === "blue") {
+    cartFill = "#b6e0fe";
+    cartStroke = "#3182ce";
+    trailColor = "#3182ce";
+  } else {
+    cartFill = "#b7f7d8";
+    cartStroke = "#38e18c";
+    trailColor = "#38e18c";
+  }
+
+  const cart = document.createElement("div");
+  cart.className = "floating-cart";
+  cart.style.top = top + "vh";
+  cart.style.animationDelay = delay + "s";
+  cart.style.opacity = opacity;
+  cart.innerHTML = `
+    <div class="trail" style="--trail-color:${trailColor}"></div>
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <rect x="8" y="18" width="28" height="14" rx="4" fill="${cartFill}" stroke="${cartStroke}" stroke-width="2"/>
+      <circle cx="14" cy="36" r="3" fill="${cartStroke}"/>
+      <circle cx="30" cy="36" r="3" fill="${cartStroke}"/>
+      <rect x="12" y="14" width="12" height="6" rx="2" fill="${cartStroke}" opacity="0.7"/>
+    </svg>
+  `;
+  document.body.appendChild(cart);
+}
+
+// Scatter green and blue carts at random vertical positions (anywhere on the screen)
+const totalCarts = 12;
+for (let i = 0; i < totalCarts; i++) {
+  const color = i % 3 === 0 ? "blue" : "green";
+  createFloatingCartLR(Math.random() * 90, Math.random() * 12, color, 0.32 + Math.random() * 0.23);
+}
 
 // Sticky Navbar
 const nav = document.createElement("nav");
@@ -83,7 +198,7 @@ nav.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
 
 // Brand name in navbar (QuiK green, Cart blue)
 const logo = document.createElement("div");
-logo.innerHTML = `<span style="color:#38a169;font-weight:700">QuiK</span><span style="color:#3182ce;font-weight:700">Cart</span>`;
+logo.innerHTML = `<span style="color:#38e18c;font-weight:700">QuiK</span><span style="color:#3182ce;font-weight:700">Cart</span>`;
 logo.style.fontSize = "1.5rem";
 logo.style.fontWeight = "bold";
 
@@ -113,7 +228,7 @@ hero.style.flexDirection = "column";
 hero.style.alignItems = "center";
 
 const heroTitle = document.createElement("h1");
-heroTitle.innerText = "Welcome to QuikKart";
+heroTitle.innerHTML = `Welcome to <span style="color:#38e18c;font-weight:700">QuiK</span><span style="color:#3182ce;font-weight:700">Cart</span>`;
 heroTitle.style.fontSize = "3rem";
 heroTitle.style.marginBottom = "1rem";
 
@@ -132,7 +247,9 @@ cta.style.fontSize = "1.1rem";
 cta.style.border = "none";
 cta.style.borderRadius = "12px";
 cta.style.cursor = "pointer";
-cta.onclick = () => alert("Demo coming soon!");
+cta.onclick = () => {
+  window.open("https://quik-cart-mauve.vercel.app", "_blank");
+};
 
 hero.appendChild(heroTitle);
 hero.appendChild(heroSub);
@@ -147,14 +264,14 @@ intro.style.textAlign = "center";
 intro.style.background = "#d8f3dc";
 
 const introTitle = document.createElement("h2");
-introTitle.innerText = "Revolutionize Grocery Shopping";
+introTitle.innerHTML = `<span style="color:#38e18c;font-weight:700">QuiK</span><span style="color:#3182ce;font-weight:700">Cart</span> lets you shop smarter: scan items, pay with UPI, and skip the queue — all from your phone. Built for Gen Z, simple for everyone.`;
 introTitle.style.fontSize = "2.5rem";
 introTitle.style.fontWeight = "bold";
 introTitle.style.color = "#2d6a4f";
 introTitle.style.marginBottom = "1rem";
 
 const introDesc = document.createElement("p");
-introDesc.innerText = "QuikKart lets you shop smarter: scan items, pay with UPI, and skip the queue — all from your phone. Built for Gen Z, simple for everyone.";
+introDesc.innerText = ""; // Already included in the h2 above, or add more text if needed
 introDesc.style.fontSize = "1.1rem";
 introDesc.style.maxWidth = "800px";
 introDesc.style.margin = "0 auto";
